@@ -1,75 +1,27 @@
-# React + TypeScript + Vite
+# Dashboard App (Vite + React + Netlify Functions)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project now uses an Express backend deployed as a Netlify Function so browser code does not call third-party APIs directly.
 
-Currently, two official plugins are available:
+## API Routes
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- `GET /api/weather?city=Detroit`
+- `GET /api/news?country=us`
+- `GET /api/health`
 
-## React Compiler
+`/api/*` is redirected to `netlify/functions/api.js` through `netlify.toml`.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Environment Variables (Netlify)
 
-Note: This will impact Vite dev & build performances.
+Set these in Netlify site settings:
 
-## Expanding the ESLint configuration
+- `OPEN_WEATHER_API`
+- `NEWS_API`
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+The backend reads these server-side values and forwards requests to the external APIs.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Local Development
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- Frontend: `npm run dev`
+- Production build: `npm run build`
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+For full local function routing (`/api/*`), run with Netlify CLI (`netlify dev`) if installed.

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import './App.css';
 
 interface NewsArticle {
@@ -14,49 +14,40 @@ interface WeatherData {
 }
 
 const App = () => {
-  // --- State ---
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark';
   });
-  
+
   const [todos, setTodos] = useState<{ id: number; text: string }[]>(() => {
     const saved = localStorage.getItem('todos');
     return saved ? JSON.parse(saved) : [];
   });
-  
+
   const [todoInput, setTodoInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [weather, setWeather] = useState<WeatherData | null>(null);
 
-  // --- Requirement 3: Active Clock + Cleanup ---
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // --- Requirement 2: Persistence ---
   useEffect(() => {
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
     localStorage.setItem('todos', JSON.stringify(todos));
   }, [isDarkMode, todos]);
 
- // --- Requirement 1: Dual API Fetch (Vite & Netlify Compatible) ---
   useEffect(() => {
     const fetchData = async () => {
-      // Accessing variables via import.meta.env for Vite/Netlify
-      const WEATHER_KEY = import.meta.env.VITE_OPEN_WEATHER_API;
-      const NEWS_KEY = import.meta.env.VITE_NEWS_API;
-
       try {
         const [weatherRes, newsRes] = await Promise.all([
-          fetch(`https://api.openweathermap.org/data/2.5/weather?q=London&units=metric&appid=${WEATHER_KEY}`),
-          fetch(`https://newsapi.org/v2/top-headlines?country=us&apiKey=${NEWS_KEY}`)
+          fetch('/api/weather?city=Detroit'),
+          fetch('/api/news?country=us')
         ]);
 
-        // Safety check: ensure both requests were successful
         if (!weatherRes.ok || !newsRes.ok) {
           throw new Error(`HTTP error! status: ${weatherRes.status} or ${newsRes.status}`);
         }
@@ -64,16 +55,14 @@ const App = () => {
         const wData = await weatherRes.json();
         const nData = await newsRes.json();
 
-        // Update Weather State
         if (wData && wData.main) {
-          setWeather({ 
-            temp: Math.round(wData.main.temp), 
-            description: wData.weather[0].description, 
-            city: wData.name 
+          setWeather({
+            temp: Math.round(wData.main.temp),
+            description: wData.weather[0].description,
+            city: wData.name
           });
         }
 
-        // Update News State
         if (nData && nData.articles) {
           setNews(nData.articles.slice(0, 5));
         }
@@ -86,7 +75,6 @@ const App = () => {
     fetchData();
   }, []);
 
-  // --- Requirement 4: Global Search ---
   const filteredNews = useMemo(() => {
     return news.filter(n => n.title.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [news, searchQuery]);
@@ -101,9 +89,9 @@ const App = () => {
 
         <div className="header-right">
           <div className="search-wrapper">
-            <input 
-              type="text" 
-              placeholder="Search news..." 
+            <input
+              type="text"
+              placeholder="Search news..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -123,7 +111,7 @@ const App = () => {
               <p>{weather?.description || '---'}</p>
             </div>
             <div className="weather-temp">
-              {weather ? `${weather.temp}°C` : '--'}
+              {weather ? `${weather.temp}°F` : '--'}
             </div>
           </section>
 
@@ -133,7 +121,7 @@ const App = () => {
             </div>
             <div className="news-list">
               {filteredNews.map((art, i) => (
-                <a key={i} href={art.url} className="news-item">
+                <a key={i} href={art.url} className="news-item" target="_blank" rel="noreferrer">
                   <small>{art.source.name}</small>
                   <p>{art.title}</p>
                 </a>
@@ -152,10 +140,10 @@ const App = () => {
             setTodos([...todos, { id: Date.now(), text: todoInput }]);
             setTodoInput('');
           }}>
-            <input 
-              value={todoInput} 
-              onChange={(e) => setTodoInput(e.target.value)} 
-              placeholder="New task..." 
+            <input
+              value={todoInput}
+              onChange={(e) => setTodoInput(e.target.value)}
+              placeholder="New task..."
             />
             <button type="submit">+</button>
           </form>
