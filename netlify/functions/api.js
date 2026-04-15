@@ -74,7 +74,7 @@ app.get('/news', async (req, res) => {
 });
 
 export const handler = serverless(app, {
-  basePath: '/.netlify/functions/api'
+  basePath: '/api'
 });
 
 if (process.env.LOCAL_API_DEV === '1') {
