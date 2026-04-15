@@ -17,15 +17,23 @@ app.get('/health', (_req, res) => {
 app.get('/weather', async (req, res) => {
   const apiKey = getEnv('OPEN_WEATHER_API', 'VITE_OPEN_WEATHER_API');
   const city = req.query.city || 'Detroit';
+  const lat = Number(req.query.lat);
+  const lon = Number(req.query.lon);
 
   if (!apiKey) {
     return res.status(500).json({ error: 'Missing OPEN_WEATHER_API environment variable.' });
   }
 
   try {
-    const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(String(city))}&units=imperial&appid=${apiKey}`
-    );
+    let weatherUrl;
+
+    if (Number.isFinite(lat) && Number.isFinite(lon)) {
+      weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lon))}&units=imperial&appid=${apiKey}`;
+    } else {
+      weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(String(city))}&units=imperial&appid=${apiKey}`;
+    }
+
+    const response = await fetch(weatherUrl);
 
     const payload = await response.json();
 
